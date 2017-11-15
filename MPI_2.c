@@ -1,28 +1,34 @@
-#include   <stdio.h>
-#include   <mpi.h>
-  
-  void main(int argc, char *argv[])
-  {
-	int rank,size;
-	double param[6],mine;
-	int sndcnt,rcvcnt;
-	int i;
+#include <stdio.h>
+#include <mpi.h>
+#include <string.h>
+#define BUFFER_SIZE 32
 
-	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-	MPI_Comm_size(MPI_COMM_WORLD,&size);
+int main(int argc,char *argv[])
+{
+	int  MyRank,Numprocs, Destination, iproc;
+	int  tag = 0;
+	int  Root = 0, temp = 1;
+	char Message[BUFFER_SIZE];
+	MPI_Init(&argc,&argv);
+	MPI_Status status;
 
-	sndcnt=1;
-	mine=23.0+rank;
-	if(rank==3) rcvcnt=1;
+	MPI_Comm_rank(MPI_COMM_WORLD,&MyRank);
+	MPI_Comm_size(MPI_COMM_WORLD,&Numprocs);
 
-	MPI_Gather(&mine,sndcnt,MPI_DOUBLE,param,rcvcnt,MPI_DOUBLE,3,MPI_COMM_WORLD);
+	/* print host name, and send message from process with rank 0 to all other processes */
+	if(MyRank == 0)        {
+		system("hostname");
+		strcpy(Message, "Hello India"); 
+		for (temp=1; temp<Numprocs;temp++)
+		{
+			MPI_Send(Message, BUFFER_SIZE, MPI_CHAR, temp, tag,MPI_COMM_WORLD);
+		}
+	}
+ 	else {          
+		system("hostname");
+	   	MPI_Recv(Message, BUFFER_SIZE, MPI_CHAR, Root, tag,MPI_COMM_WORLD, &status);
+		printf("\n%s in process with rank %d from Process with rank %d\n", Message,MyRank,Root);
+  	}
 
-	if(rank==3)
-		for(i=0;i<size;++i) 
-		  //printf("PE:%d param[%d] is %f \n",rank,i,param[i]); //gather and print where rank 3 is master
-		  printf(" Rank : %d Process : %d  \n",rank,i); 
-
-	MPI_Finalize();
+  	MPI_Finalize();
 }
-
