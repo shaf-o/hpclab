@@ -1,29 +1,27 @@
-#include <stdio.h>
-#include "mpi.h"
+#include   <stdio.h>
+#include   <mpi.h>
+  
+  void main(int argc, char *argv[])
+  {
+	int rank,size;
+	double param[6],mine;
+	int sndcnt,rcvcnt;
+	int i;
 
-int main (int argc, char *argv[])
-{ 
-	 int rank, i;
+	MPI_Init(&argc, &argv);
+	MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+	MPI_Comm_size(MPI_COMM_WORLD,&size);
 
- 	  MPI_Init (&argc, &argv);
+	sndcnt=1;
+	mine=23.0+rank;
+	if(rank==3) rcvcnt=1;
 
-   MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+	MPI_Gather(&mine,sndcnt,MPI_DOUBLE,param,rcvcnt,MPI_DOUBLE,3,MPI_COMM_WORLD);
 
+	if(rank==3)
+		for(i=0;i<size;++i) 
+		  //printf("PE:%d param[%d] is %f \n",rank,i,param[i]]); 
+		  printf(" %d %d  \n",rank,i); 
 
-   if (rank == 0) i = 27;
-
-   MPI_Bcast ((void *)&i, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-   printf ("[%d] i = %d\n", rank, i);
-
-   // Wait for every process to reach this code
-
-
-   MPI_Barrier (MPI_COMM_WORLD);
-
-   MPI_Finalize();
-   return 0;
-
-
+	MPI_Finalize();
 }
-
